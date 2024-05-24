@@ -1,4 +1,4 @@
-import Card from "@/components/card";
+import Card from "@/components/Card";
 import React, { useMemo, useState } from "react";
 import { useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks";
@@ -7,17 +7,16 @@ import { scoreIncrement, scoreReset } from "@/counter/counterSlice";
 import axios from "axios";
 
 export default function Home() {
-  const [initialImageCount, setInitialImageCount] = useState(32);
-  const [round, setRound] = useState(1);
+  const [initialImageCount, setInitialImageCount] = useState(4);
+  const [round, setRound] = useState(1); // current round
 
   const dispatch = useAppDispatch();
 
   const getImages = useCallback(
     async (amount: number) => {
       try {
-        const response = await axios
-          .get(`https://api.nekosapi.com/v3/images/random?is_animated=false&limit=${amount}&rating=safe`)
-          .then((res) => dispatch(setImages(res.data.items)));
+        const response = await axios.get(`https://api.nekosapi.com/v3/images/random?is_animated=false&limit=${amount}&rating=safe`);
+        dispatch(setImages(response.data.items));
       } catch (error) {
         console.error("Error occurred while fetching image:", error);
       }
@@ -36,6 +35,10 @@ export default function Home() {
     dispatch(scoreIncrement());
   }, [dispatch]);
 
+  const displayedImages = useMemo(() => {
+    return images.slice(0, initialImageCount / round);
+  }, [images, initialImageCount, round]);
+
   useEffect(() => {
     if (score >= initialImageCount / round / 2) {
       dispatch(scoreReset());
@@ -43,11 +46,7 @@ export default function Home() {
       dispatch(uncheck());
       setRound((prevRound) => prevRound + 1); // Update initialImageCount for the next round
     }
-  }, [score, dispatch, round]);
-
-  const displayedImages = useMemo(() => {
-    return images.slice(0, initialImageCount / round);
-  }, [images, initialImageCount, round]);
+  }, [score, dispatch, round, initialImageCount]);
   return (
     <>
       <div className="flex justify-start bg-slate-950 h-screen flex-col overflow-hidden">
@@ -75,7 +74,7 @@ export default function Home() {
                 Reset
               </button>
               <p className="font-bold text-center py-2">WINNER</p>
-              <Card image={displayedImages[0]} disabled={true} onClick={handleClick} />
+              <Card image={displayedImages[0]} disabled={true} onClick={() => {}} />
             </>
           )}
         </div>
